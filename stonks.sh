@@ -46,7 +46,7 @@ do
 		echo Invalid stock ticker length!
 		err=1
 		continue
-	elif [ "$month" -gt 12 -o "$month" -lt 1 ]
+	elif [ "$month" -gt 12 -o "$month" -lt 1 -o "${#month}" -gt 2 ]
 	then
 		echo Invalid month! Please use a number between 1 and 12
 		err=1
