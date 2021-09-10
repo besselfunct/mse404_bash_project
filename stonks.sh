@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 # This script:
 #    1. Repeatedly prompts the user for $STOCK, $MONTH, and $YEAR
 #       and produces a file containing the adjusted daily closing
@@ -75,11 +75,103 @@ FILE=$stock.csv
 if [ -f "$FILE" ]
 then
 # Debug output. Remove for final submission
-echo File created
-err=1
-initarg=0
+	echo File created
+	err=1
+	initarg=0
 # Start the command flow for pulling the user's query
 else
 	echo Error pulling quotes from Yahoo!
+	err=1
+	initarg=0
+	continue
 fi
+# The get-yahoo-quotes script should grab all available dates from 1970 onwards
+# We should check to see if the year the user queries makes sense
+# This stores the first year in the scraped file
+firstyear="$(awk -F "-" 'NR==2{print $1}' "$stock".csv)"
+firstmonth="$(awk -F "-" 'NR==2{print $2}' "$stock".csv)"
+# DEBUG
+echo FIRSTYEAR = "$firstyear"
+echo FIRSTMONTH = "$firstmonth"
+# DEBUG
+# Let's compare this to the user input
+if [ "$firstyear" -gt "$year" ]
+then
+	echo The first year this stock was tracked is "$firstyear"
+	echo Please provide a year query which is consistent with the available
+	echo data.
+	err=1
+	initarg=0
+	continue
+fi
+# Do the same thing for the month
+	if [ "$firstmonth" -gt "$month" -a "$firstyear" -eq "$year" ]
+then
+	echo The first month this stock was tracked is "$firstmonth"
+	echo Please provide a month query which is consistent with the
+	echo available data.
+	err=1
+	initarg=0
+	continue
+fi
+# We need to modify our month so we can use it in a regular expression
+if [ "$month" -lt 10 ]
+then
+	month=0"$month"
+fi
+# DEBUG
+echo MONTH = "$month"
+# DEBUG
+# The year, month, and stock ticker should all be good now.
+# We can move on to parsing the file
+# Let's find the row where the first instance of our year + month occurs
+rows="$(echo "$(awk "/${year}-${month}/"'{print NR}' "$stock".csv)")"
+# DEBUG
+echo ROWS = "$rows"
+# DEBUG
+# HACKY SOLUTION TO FUNKY OUTPUT
+touch row_indices.tmp
+echo "$rows" >> row_indices.tmp
+echo "$(head -n 1 row_indices.tmp)"
+echo "$(tail -n 1 row_indices.tmp)"
+# This could be an array, so we need to trim it down
+firstrow="$(head -n 1 row_indices.tmp)"
+# DEBUG
+echo FIRSTROW = "$firstrow"
+# DEBUG
+# Calculate the array size
+# size="$(echo "${#firstrow[@]}")"
+# DEBUG
+# echo SIZE = "$size"
+# DEBUG
+# Grab the last row index
+# lastrow="$(echo ${row["$(($size-1))","$size"]})"
+lastrow="$(tail -n 1 row_indices.tmp)"
+# DEBUG
+echo LASTROW = "$lastrow"
+# DEBUG
+# Let's prep the file
+cent="$(echo -e '\u00A2')"
+touch "$stock"_"$month"_"$year".txt
+echo 'Date, Adjusted Closing Price / '"$cent" > "$stock"_"$month"_"$year".txt
+# Temporary file for reverse chronological order hack
+touch chronologic.tmp
+# Now we should just need to use awk to grab the correct columns and rows
+awk -v firstrow="$firstrow" -v lastrow="$lastrow" -F "\"*,\"*" 'NR>=firstrow && NR<=lastrow{print $1", "$6}' "$stock".csv >> chronologic.tmp
+tac chronologic.tmp >> "$stock"_"$month"_"$year".txt
+# Cleanup
+rm row_indices.tmp chronologic.tmp
+################################################################################
+# Stretch Goal
+# Use Julia to generate a Unicode Plot of the user's Query
+################################################################################
+# Check and see if Julia is installed
+if command -v julia &> /dev/null
+then
+	julia plotting_script.jl "$stock"_"$month"_"$year".txt "$stock" "$month" "$year"
+fi
+# We want to change these flags so that it prompts for user input
+# the next time we go through the loop
+err=1
+initarg=0
 done
