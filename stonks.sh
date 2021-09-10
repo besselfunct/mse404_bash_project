@@ -64,7 +64,14 @@ then
 	read -p "Is this correct[y/n]? " decision
 	if [ "$decision" = "n" -o "$decision" = "N" ]
 	then
+		err=1
 		continue
+	elif [ "$decision" = "exit" ]
+	then
+		exit 1
+	elif [ "$decision" -ne "y" -o "$decision" -ne "Y" ]
+	then
+		echo 'Invalid selection. Please input [y/n] or exit' 
 	fi
 fi
 # Call the external script which needs to be in the same directory
@@ -115,7 +122,7 @@ then
 	continue
 fi
 # We need to modify our month so we can use it in a regular expression
-if [ "$month" -lt 10 ]
+if [ "$month" -lt 10 -a ${#month} -lt 2 ]
 then
 	month=0"$month"
 fi
