@@ -171,6 +171,7 @@ then
 	echo Initializing Julia Plotting Script...
 	echo This may take a while.
 	julia plotting_script.jl "$stock"_"$month"_"$year".txt "$stock" "$month" "$year"
+	echo 
 fi
 # We want to change these flags so that it prompts for user input
 # the next time we go through the loop
