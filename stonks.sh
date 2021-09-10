@@ -75,7 +75,7 @@ FILE=$stock.csv
 if [ -f "$FILE" ]
 then
 # Debug output. Remove for final submission
-	echo File created
+	#echo File created
 	err=1
 	initarg=0
 # Start the command flow for pulling the user's query
@@ -91,8 +91,8 @@ fi
 firstyear="$(awk -F "-" 'NR==2{print $1}' "$stock".csv)"
 firstmonth="$(awk -F "-" 'NR==2{print $2}' "$stock".csv)"
 # DEBUG
-echo FIRSTYEAR = "$firstyear"
-echo FIRSTMONTH = "$firstmonth"
+#echo FIRSTYEAR = "$firstyear"
+#echo FIRSTMONTH = "$firstmonth"
 # DEBUG
 # Let's compare this to the user input
 if [ "$firstyear" -gt "$year" ]
@@ -120,24 +120,24 @@ then
 	month=0"$month"
 fi
 # DEBUG
-echo MONTH = "$month"
+# echo MONTH = "$month"
 # DEBUG
 # The year, month, and stock ticker should all be good now.
 # We can move on to parsing the file
 # Let's find the row where the first instance of our year + month occurs
 rows="$(echo "$(awk "/${year}-${month}/"'{print NR}' "$stock".csv)")"
 # DEBUG
-echo ROWS = "$rows"
+# echo ROWS = "$rows"
 # DEBUG
 # HACKY SOLUTION TO FUNKY OUTPUT
 touch row_indices.tmp
 echo "$rows" >> row_indices.tmp
-echo "$(head -n 1 row_indices.tmp)"
-echo "$(tail -n 1 row_indices.tmp)"
+# echo "$(head -n 1 row_indices.tmp)"
+# echo "$(tail -n 1 row_indices.tmp)"
 # This could be an array, so we need to trim it down
 firstrow="$(head -n 1 row_indices.tmp)"
 # DEBUG
-echo FIRSTROW = "$firstrow"
+# echo FIRSTROW = "$firstrow"
 # DEBUG
 # Calculate the array size
 # size="$(echo "${#firstrow[@]}")"
@@ -148,7 +148,7 @@ echo FIRSTROW = "$firstrow"
 # lastrow="$(echo ${row["$(($size-1))","$size"]})"
 lastrow="$(tail -n 1 row_indices.tmp)"
 # DEBUG
-echo LASTROW = "$lastrow"
+# echo LASTROW = "$lastrow"
 # DEBUG
 # Let's prep the file
 cent="$(echo -e '\u00A2')"
@@ -168,6 +168,8 @@ rm row_indices.tmp chronologic.tmp
 # Check and see if Julia is installed
 if command -v julia &> /dev/null
 then
+	echo Initializing Julia Plotting Script...
+	echo This may take a while.
 	julia plotting_script.jl "$stock"_"$month"_"$year".txt "$stock" "$month" "$year"
 fi
 # We want to change these flags so that it prompts for user input
