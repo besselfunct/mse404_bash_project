@@ -163,7 +163,7 @@ lastrow="$(tail -n 1 row_indices.tmp)"
 cent="$(echo -e '\u00A2')"
 echo 'Date, Adjusted Closing Price / cent' > "$stock"_"$month"_"$year".txt
 # Now we should just need to use awk to grab the correct columns and rows
-awk -v firstrow="$firstrow" -v lastrow="$lastrow" -F "\"*,\"*" 'NR>=firstrow && NR<=lastrow{print $1", "$6}' "$stock".csv > chronologic.tmp
+awk -v firstrow="$firstrow" -v lastrow="$lastrow" -F "\"*,\"*" 'NR>=firstrow && NR<=lastrow{print $1", "$6*100}' "$stock".csv > chronologic.tmp
 tac chronologic.tmp >> "$stock"_"$month"_"$year".txt
 # Cleanup
 rm row_indices.tmp chronologic.tmp
