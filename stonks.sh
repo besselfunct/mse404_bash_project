@@ -69,19 +69,22 @@ then
 	elif [ "$decision" = "exit" ]
 	then
 		exit 1
-	elif [ "$decision" -ne "y" -o "$decision" -ne "Y" ]
+	elif [ "$decision" != "y" -a "$decision" != "Y" ]
 	then
 		echo 'Invalid selection. Please input [y/n] or exit' 
 	fi
 fi
 # Call the external script which needs to be in the same directory
-./get-yahoo-quotes.sh $stock
 # This should create a file $stock.csv in the current directory
 # Let's check and see if it was created
 FILE=$stock.csv
+if [ ! -f "$FILE" ]
+then
+	./get-yahoo-quotes.sh $stock
+fi
 if [ -f "$FILE" ]
 then
-# Debug output. Remove for final submission
+	# Debug output. Remove for final submission
 	#echo File created
 	err=1
 	initarg=0
@@ -137,8 +140,7 @@ rows="$(echo "$(awk "/${year}-${month}/"'{print NR}' "$stock".csv)")"
 # echo ROWS = "$rows"
 # DEBUG
 # HACKY SOLUTION TO FUNKY OUTPUT
-touch row_indices.tmp
-echo "$rows" >> row_indices.tmp
+echo "$rows" > row_indices.tmp
 # echo "$(head -n 1 row_indices.tmp)"
 # echo "$(tail -n 1 row_indices.tmp)"
 # This could be an array, so we need to trim it down
@@ -159,12 +161,9 @@ lastrow="$(tail -n 1 row_indices.tmp)"
 # DEBUG
 # Let's prep the file
 cent="$(echo -e '\u00A2')"
-touch "$stock"_"$month"_"$year".txt
-echo 'Date, Adjusted Closing Price / '"$cent" > "$stock"_"$month"_"$year".txt
-# Temporary file for reverse chronological order hack
-touch chronologic.tmp
+echo 'Date, Adjusted Closing Price / cent' > "$stock"_"$month"_"$year".txt
 # Now we should just need to use awk to grab the correct columns and rows
-awk -v firstrow="$firstrow" -v lastrow="$lastrow" -F "\"*,\"*" 'NR>=firstrow && NR<=lastrow{print $1", "$6}' "$stock".csv >> chronologic.tmp
+awk -v firstrow="$firstrow" -v lastrow="$lastrow" -F "\"*,\"*" 'NR>=firstrow && NR<=lastrow{print $1", "$6}' "$stock".csv > chronologic.tmp
 tac chronologic.tmp >> "$stock"_"$month"_"$year".txt
 # Cleanup
 rm row_indices.tmp chronologic.tmp
