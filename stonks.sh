@@ -46,6 +46,16 @@ do
 		echo Invalid stock ticker length!
 		err=1
 		continue
+	elif [[ -z "$month" ]]
+	then
+		echo No month entered!
+		err=1
+		continue
+	elif [[ -z "$year" ]]
+	then
+		echo No year entered!
+		err=1
+		continue
 	elif [ "${#month}" -gt 2 ]
 	then
 		echo Invalid month! Please enter a number between 1 and 12
