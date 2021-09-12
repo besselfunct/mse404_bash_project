@@ -41,7 +41,7 @@ do
 	if [ "$stock" = "exit" ]
 	then
 		exit 1
-	elif [ "${#stock}" -gt 6 ] # Not sure how to test for mixing ints and str
+	elif [ "${#stock}" -gt 6 ]
 	then
 		echo Invalid stock ticker length!
 		err=1
@@ -89,9 +89,7 @@ then
 		echo 'Invalid selection. Please input [y/n] or exit' 
 	fi
 fi
-# Call the external script which needs to be in the same directory
-# This should create a file $stock.csv in the current directory
-# Let's check and see if it was created
+# Let's check an see if there's already a file for the stock we're interested in before calling the script
 FILE=$stock.csv
 if [ ! -f "$FILE" ]
 then
@@ -99,26 +97,21 @@ then
 fi
 if [ -f "$FILE" ]
 then
-	# Debug output. Remove for final submission
-	#echo File created
+	echo File "$FILE" created
 	err=1
 	initarg=0
-# Start the command flow for pulling the user's query
 else
 	echo Error pulling quotes from Yahoo!
 	err=1
 	initarg=0
 	continue
 fi
+# Start the command flow for pulling the user's query
 # The get-yahoo-quotes script should grab all available dates from 1970 onwards
 # We should check to see if the year the user queries makes sense
-# This stores the first year in the scraped file
+# This stores the first year and first month in the scraped file
 firstyear="$(awk -F "-" 'NR==2{print $1}' "$stock".csv)"
 firstmonth="$(awk -F "-" 'NR==2{print $2}' "$stock".csv)"
-# DEBUG
-#echo FIRSTYEAR = "$firstyear"
-#echo FIRSTMONTH = "$firstmonth"
-# DEBUG
 # Let's compare this to the user input
 if [ "$firstyear" -gt "$year" ]
 then
@@ -144,41 +137,20 @@ if [ "$month" -lt 10 -a ${#month} -lt 2 ]
 then
 	month=0"$month"
 fi
-# DEBUG
-# echo MONTH = "$month"
-# DEBUG
 # The year, month, and stock ticker should all be good now.
 # We can move on to parsing the file
 # Let's find the row where the first instance of our year + month occurs
 rows="$(echo "$(awk "/${year}-${month}/"'{print NR}' "$stock".csv)")"
-# DEBUG
-# echo ROWS = "$rows"
-# DEBUG
-# HACKY SOLUTION TO FUNKY OUTPUT
+# HACKY SOLUTION TO ARRAY OUTPUT
 echo "$rows" > row_indices.tmp
-# echo "$(head -n 1 row_indices.tmp)"
-# echo "$(tail -n 1 row_indices.tmp)"
 # This could be an array, so we need to trim it down
 firstrow="$(head -n 1 row_indices.tmp)"
-# DEBUG
-# echo FIRSTROW = "$firstrow"
-# DEBUG
-# Calculate the array size
-# size="$(echo "${#firstrow[@]}")"
-# DEBUG
-# echo SIZE = "$size"
-# DEBUG
-# Grab the last row index
-# lastrow="$(echo ${row["$(($size-1))","$size"]})"
 lastrow="$(tail -n 1 row_indices.tmp)"
-# DEBUG
-# echo LASTROW = "$lastrow"
-# DEBUG
 # Let's prep the file
-cent="$(echo -e '\u00A2')"
 echo 'Date, Adjusted Closing Price / cent' > "$stock"_"$month"_"$year".txt
 # Now we should just need to use awk to grab the correct columns and rows
 awk -v firstrow="$firstrow" -v lastrow="$lastrow" -F "\"*,\"*" 'NR>=firstrow && NR<=lastrow{print $1", "$6*100}' "$stock".csv > chronologic.tmp
+# Reverse the order of the original query
 tac chronologic.tmp >> "$stock"_"$month"_"$year".txt
 # Cleanup
 rm row_indices.tmp chronologic.tmp
