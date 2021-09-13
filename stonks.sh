@@ -89,6 +89,12 @@ then
 		echo 'Invalid selection. Please input [y/n] or exit' 
 	fi
 fi
+# Let's make sure that the script is already in our directory
+if [ ! -f get-yahoo-quotes.sh ]
+then
+	wget https://raw.githubusercontent.com/bradlucas/get-yahoo-quotes/master/get-yahoo-quotes.sh
+	chmod +x get-yahoo-quotes.sh
+fi
 # Let's check an see if there's already a file for the stock we're interested in before calling the script
 FILE=$stock.csv
 if [ ! -f "$FILE" ]
